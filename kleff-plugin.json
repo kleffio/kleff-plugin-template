@@ -1,0 +1,33 @@
+{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "type": "ui",
+  "description": "One-line description shown in the Kleff marketplace.",
+  "longDescription": "## My Plugin\n\nLonger markdown description shown on the plugin detail page.\n\n### Features\n- Example nav item in the sidebar\n- Example widget on the dashboard",
+  "tags": ["example"],
+  "author": "Your Name",
+  "repo": "https://github.com/your-org/my-plugin",
+  "docs": "https://github.com/your-org/my-plugin#readme",
+  "image": "ghcr.io/your-org/my-plugin",
+  "version": "1.0.0",
+  "minKleffVersion": "0.5.0",
+  "license": "MIT",
+  "verified": false,
+  "capabilities": ["ui.manifest"],
+  "config": [
+    {
+      "key": "EXAMPLE_API_URL",
+      "label": "API URL",
+      "description": "Base URL of the service this plugin connects to.",
+      "type": "url",
+      "required": true
+    },
+    {
+      "key": "EXAMPLE_API_KEY",
+      "label": "API Key",
+      "description": "API key for authenticating with the service.",
+      "type": "secret",
+      "required": false
+    }
+  ]
+}
