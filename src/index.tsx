@@ -1,4 +1,4 @@
-import { definePlugin } from "@kleff/plugin-sdk";
+import { definePlugin } from "@kleffio/plugin-sdk";
 import { ExamplePage } from "./pages/ExamplePage";
 import { ExampleWidget } from "./components/ExampleWidget";
 

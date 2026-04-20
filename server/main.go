@@ -1,6 +1,6 @@
 // Command plugin is the gRPC server for this Kleff plugin.
-// It declares a nav item and settings page via GetUIManifest so the
-// panel can surface them, and reports healthy to the platform health check.
+// It declares capabilities via GetCapabilities and exposes a UI manifest so the
+// panel can surface nav items and pages contributed by this plugin.
 package main
 
 import (
@@ -16,15 +16,13 @@ import (
 	"google.golang.org/grpc"
 )
 
-// ── Plugin server ─────────────────────────────────────────────────────────────
-
 type pluginServer struct {
 	pluginsv1.UnimplementedPluginHealthServer
 	pluginsv1.UnimplementedPluginUIServer
 }
 
 func (s *pluginServer) Health(_ context.Context, _ *pluginsv1.HealthRequest) (*pluginsv1.HealthResponse, error) {
-	return &pluginsv1.HealthResponse{Status: pluginsv1.HealthStatusHealthy}, nil
+	return &pluginsv1.HealthResponse{Status: pluginsv1.HealthStatusHealthy, Message: "my-plugin 0.1.0"}, nil
 }
 
 func (s *pluginServer) GetCapabilities(_ context.Context, _ *pluginsv1.GetCapabilitiesRequest) (*pluginsv1.GetCapabilitiesResponse, error) {
@@ -33,8 +31,6 @@ func (s *pluginServer) GetCapabilities(_ context.Context, _ *pluginsv1.GetCapabi
 	}, nil
 }
 
-// GetUIManifest tells the panel which nav items and settings pages this plugin
-// contributes. Keep this in sync with what you declare in src/index.tsx.
 func (s *pluginServer) GetUIManifest(_ context.Context, _ *pluginsv1.GetUIManifestRequest) (*pluginsv1.GetUIManifestResponse, error) {
 	pluginID := env("PLUGIN_ID", "my-plugin")
 	return &pluginsv1.GetUIManifestResponse{
@@ -51,28 +47,25 @@ func (s *pluginServer) GetUIManifest(_ context.Context, _ *pluginsv1.GetUIManife
 	}, nil
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	srv := &pluginServer{}
-
-	gs := grpc.NewServer()
-	pluginsv1.RegisterPluginHealthServer(gs, srv)
-	pluginsv1.RegisterPluginUIServer(gs, srv)
-
-	port := env("PLUGIN_PORT", "50051")
+	port := env("PORT", "50051")
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		logger.Error("listen failed", "error", err)
 		os.Exit(1)
 	}
 
+	srv := grpc.NewServer()
+	p := &pluginServer{}
+	pluginsv1.RegisterPluginHealthServer(srv, p)
+	pluginsv1.RegisterPluginUIServer(srv, p)
+
 	go func() {
 		logger.Info("plugin listening", "port", port)
-		if err := gs.Serve(lis); err != nil {
-			logger.Error("gRPC server error", "error", err)
+		if serveErr := srv.Serve(lis); serveErr != nil {
+			logger.Error("gRPC server error", "error", serveErr)
 			os.Exit(1)
 		}
 	}()
@@ -81,7 +74,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 	<-stop
 	logger.Info("shutting down")
-	gs.GracefulStop()
+	srv.GracefulStop()
 }
 
 func env(key, def string) string {

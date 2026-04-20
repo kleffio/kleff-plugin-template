@@ -2,6 +2,7 @@
   "id": "my-plugin",
   "name": "My Plugin",
   "type": "ui",
+  "tier": 0,
   "description": "One-line description shown in the Kleff marketplace.",
   "longDescription": "## My Plugin\n\nLonger markdown description shown on the plugin detail page.\n\n### Features\n- Example nav item in the sidebar\n- Example widget on the dashboard",
   "tags": ["example"],
